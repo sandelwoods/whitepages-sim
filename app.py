@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, Response
+import xml.etree.ElementTree as ET
 
 app = Flask(__name__)
 
@@ -7,51 +8,21 @@ def simulate_phone_api():
     data = request.json
     phone_number = data.get("phone_number", "")
 
-    response = {
-        "phone_number": phone_number,
-        "is_valid": True,
-        "line_type": "Mobile",
-        "carrier": "Verizon Wireless",
-        "is_prepaid": False,
-        "is_commercial": False,
-        "country_calling_code": "1",
-        "belongs_to": [
-            {
-                "name": "John Doe",
-                "age_range": "35-44",
-                "type": "Person",
-                "gender": "Male",
-                "location": {
-                    "city": "San Francisco",
-                    "state_code": "CA",
-                    "postal_code": "94107",
-                    "country_code": "US"
-                }
-            }
-        ],
-        "current_addresses": [
-            {
-                "location": {
-                    "city": "San Francisco",
-                    "state_code": "CA",
-                    "postal_code": "94107",
-                    "country_code": "US"
-                },
-                "delivery_point": "SingleUnit",
-                "is_active": True
-            }
-        ],
-        "associated_people": [],
-        "alternate_phones": [],
-        "warnings": [],
-        "error": None,
-        "metadata": {
-            "request_id": "sim-req-001",
-            "timestamp": "2025-06-03T15:00:00Z"
-        }
-    }
+    # Build XML
+    root = ET.Element("WhitepagesPhoneResponse")
+    ET.SubElement(root, "phone_number").text = phone_number
+    ET.SubElement(root, "is_valid").text = "true"
+    ET.SubElement(root, "line_type").text = "Mobile"
+    ET.SubElement(root, "carrier").text = "Verizon Wireless"
+    ET.SubElement(root, "is_prepaid").text = "false"
+	ET.SubElement(root, "is_voip").text = "true"
+    ET.SubElement(root, "is_commercial").text = "false"
+    ET.SubElement(root, "country_calling_code").text = "1"
+    ET.SubElement(root, "phone_risk_score").text = "77"
 
-    return jsonify(response)
+    xml_str = ET.tostring(root, encoding="utf-8")
+
+    return Response(xml_str, mimetype='application/xml')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
